@@ -133,7 +133,7 @@ export default function MainBoard({ logs }: Props) {
             <div>
               <b>• 내정</b>
               <p>- 건설: 은화로 건물 건설 / 업그레이드</p>
-              <p>- 세금 징수: 이번 라운드 시작 수입 1회 추가</p>
+              <p>- 세금 징수: 이번 라운드 시작 수입 15회 추가</p>
             </div>
 
             <div>
