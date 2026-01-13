@@ -6,11 +6,13 @@ import { db } from "../lib/firebase";
 
 import { drawEventCard } from "../lib/drawEventCard";
 import { drawFieldMonster } from "../lib/drawFieldMonster";
+import { drawFaithCard } from "../lib/firebaseActions";
 
 import { EVENT_CARDS } from "../lib/data/eventCards";
 import { FIELD_MONSTERS } from "../lib/data/fieldMonsters";
 
 import InfluenceBoard from "./InfluenceBoard";
+import { useMyPlayer } from "../lib/MyPlayerContext";
 
 type Props = {
   logs: string[];
@@ -20,7 +22,7 @@ export default function MainBoard({ logs }: Props) {
   /* =========================
      상태
   ========================= */
-  const [round, setRound] = useState<number>(0);
+  const [round, setRound] = useState(0);
   const [openActionSheet, setOpenActionSheet] = useState(false);
 
   const [lastEvent, setLastEvent] = useState<any>(null);
@@ -28,6 +30,8 @@ export default function MainBoard({ logs }: Props) {
 
   const [usedEventIds, setUsedEventIds] = useState<string[]>([]);
   const [usedMonsterIds, setUsedMonsterIds] = useState<string[]>([]);
+
+  const { myPlayerId } = useMyPlayer();
 
   /* =========================
      라운드 구독
@@ -98,7 +102,7 @@ export default function MainBoard({ logs }: Props) {
   return (
     <section className="bg-zinc-700 p-4 rounded flex flex-col h-full">
       {/* =========================
-          라운드 표시 + 종료 버튼
+          라운드 표시
       ========================= */}
       <div className="mb-3 text-center">
         <div className="text-xs text-zinc-400">현재 라운드</div>
@@ -116,7 +120,7 @@ export default function MainBoard({ logs }: Props) {
       </div>
 
       {/* =========================
-          📜 개인 행동 시트 (아코디언)
+          개인 행동 시트
       ========================= */}
       <div className="mb-4">
         <button
@@ -129,56 +133,60 @@ export default function MainBoard({ logs }: Props) {
         </button>
 
         {openActionSheet && (
-          <div className="mt-2 text-xs text-zinc-300 space-y-4 bg-zinc-800 p-3 rounded">
+          <div className="mt-2 text-xs text-zinc-300 space-y-4 bg-zinc-800 p-3 rounded leading-relaxed">
+
             <div>
               <b>• 내정</b>
-              <p>- 건설: 은화로 건물 건설 / 업그레이드</p>
-              <p>- 세금 징수: 이번  라운드 시작 수입 1회 추가</p>
+              <p>- 건설: 건물 건설 또는 업그레이드</p>
+              <p className="ml-2 text-zinc-400">
+                · 농지 → 장원 → 성채<br />
+                · 업그레이드 시 이전 효과 유지
+              </p>
+              <p>- 세금 징수: 라운드 시작 수익 1회 추가</p>
+            </div>
+
+            <div>
+              <b>• 건물 효과 요약</b>
+              <p className="ml-2">
+                · 농지: 수입 +1<br />
+                · 장원: 수입 +2, 추가 징집 1회, 상한 2회<br />
+                · 성채: 수입 +2, 수비 방어 +3,
+                추가 징집 1회, 상한 3회
+              </p>
             </div>
 
             <div>
               <b>• 전쟁</b>
-              <p>- 징집: 은화로 병사 획득 (유지비 없음)</p>
-              <p>- 병종: 기사 / 궁수 / 공성 병기</p>
-              <p>- 토벌: 몬스터 토벌</p>
+              <p>- 징집: 병력 1기 획득</p>
               <p className="ml-2 text-zinc-400">
-                · 기본 몬스터 보상: 동화 4<br />
-                · 네임드 몬스터: 사건 카드로 등장
+                · 기사: 공1 / 방2 (2)<br />
+                · 궁수: 공2 / 방1 (2)<br />
+                · 공성: 공1 / 방1 (3, 성채 공격 +2)
               </p>
-              <p>
-                - 플레이어 전쟁: 선전포고 이후 가능<br />
-                (1라운드 직접 공격 불가)
-              </p>
-            </div>
-
-            <div>
-              <b>• 첩보</b>
-              <p>- 정찰: 동화 2 → 다음 라운드 사건 카드 확인</p>
-              <p>- 내통: 동화 4 → 플레이어 1명의 왕국 정보 확인</p>
-            </div>
-
-            <div>
-              <b>• 신앙</b>
-              <p>- 기도: 동화 4 → 신앙 카드 1장 손패 획득</p>
-              <p className="ml-2 text-zinc-400">
-                · 원하는 타이밍에 사용<br />
-                · 사용 후 버림 더미
-              </p>
+              <p>- 토벌: 필드 몬스터 전투 (보상 동화 4)</p>
             </div>
 
             <div>
               <b>• 외교</b>
-              <p>- 우호 관계 선언 (거절 시 행동 소모)</p>
+              <p>- 우호 관계 선언 (라운드 수입 +2)</p>
+            </div>
+
+            <div>
+              <b>• 첩보</b>
+              <p>- 정찰(2): 다음 사건 카드 확인</p>
+              <p>- 내통(4): 상대 왕국 정보 확인</p>
+            </div>
+
+            <div>
+              <b>• 신앙</b>
+              <p>- 기도(4): 신앙 카드 1장 획득</p>
             </div>
 
             <div>
               <b>• 상업</b>
-              <p>- 투자: 동화 X (최대 7)</p>
-              <p className="ml-2 text-zinc-400">
-                · 다음 턴 시작 정산<br />
-                · 성공: 2배 / 실패: 원금
-              </p>
+              <p>- 투자: 최대 7, 다음 턴 정산</p>
             </div>
+
           </div>
         )}
       </div>
@@ -192,7 +200,7 @@ export default function MainBoard({ logs }: Props) {
           onClick={drawEventCard}
           className={`w-full rounded px-4 py-2 text-sm font-bold ${
             remainEvent === 0
-              ? "bg-zinc-600 text-zinc-400 cursor-not-allowed"
+              ? "bg-zinc-600 text-zinc-400"
               : "bg-purple-600 hover:bg-purple-500"
           }`}
         >
@@ -204,16 +212,33 @@ export default function MainBoard({ logs }: Props) {
           onClick={drawFieldMonster}
           className={`w-full rounded px-4 py-2 text-sm font-bold ${
             remainMonster === 0
-              ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
+              ? "bg-zinc-700 text-zinc-400"
               : "bg-red-800 hover:bg-red-700"
           }`}
         >
           필드 몬스터 1장 뽑기 ({remainMonster}/{FIELD_MONSTERS.length})
         </button>
+
+        <button
+          disabled={!myPlayerId}
+          onClick={() => {
+  if (
+    myPlayerId === "A" ||
+    myPlayerId === "B" ||
+    myPlayerId === "C" ||
+    myPlayerId === "D"
+  ) {
+    drawFaithCard("room_1", myPlayerId);
+  }
+}}
+          className="w-full rounded px-4 py-2 text-sm font-bold bg-amber-700 hover:bg-amber-600"
+        >
+          ✝ 신앙 카드 1장 뽑기 (개인)
+        </button>
       </div>
 
       {/* =========================
-          🃏 마지막 사건 카드
+          📜 마지막 사건 카드
       ========================= */}
       {lastEvent ? (
         <div className="mb-3 rounded bg-zinc-800 p-3 text-sm">
