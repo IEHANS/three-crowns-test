@@ -1,9 +1,17 @@
 "use client";
 
+/* =====================
+   상수 트랙
+===================== */
 const FAMILY_TRACK = [-3, -2, -1, 0, 1, 2, 3] as const;
 const INFLUENCE_TRACK = [0, 5, 10, 15, 20, 25, 30] as const;
 
+/* =====================
+   타입
+===================== */
 type MoneyType = "gold" | "silver" | "copper";
+
+/** 입장 선언 타입 (초기값 null 허용) */
 type StanceType = "approve" | "oppose" | null;
 
 type Dice = {
