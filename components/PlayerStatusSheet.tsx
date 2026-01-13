@@ -30,7 +30,6 @@ type Props = {
     type: "knight" | "archer" | "siege",
     value: number
   ) => void;
-
   onAnxietyChange: (type: AnxietyType, value: number) => void;
 };
 
@@ -61,9 +60,7 @@ export default function PlayerStatusSheet({
 
   return (
     <div className="space-y-4">
-      {/* =====================
-          건물
-      ===================== */}
+      {/* 건물 */}
       <div>
         <p className="text-xs text-zinc-400 mb-1">건물</p>
         <div className="flex gap-1">
@@ -87,9 +84,7 @@ export default function PlayerStatusSheet({
         </div>
       </div>
 
-      {/* =====================
-          정상 병력
-      ===================== */}
+      {/* 정상 병력 */}
       <div>
         <p className="text-xs text-zinc-400 mb-1">정상 병력</p>
 
@@ -113,9 +108,7 @@ export default function PlayerStatusSheet({
         />
       </div>
 
-      {/* =====================
-          부상 병력
-      ===================== */}
+      {/* 부상 병력 */}
       <div>
         <p className="text-xs text-zinc-400 mb-1">부상 병력</p>
 
@@ -133,9 +126,7 @@ export default function PlayerStatusSheet({
         />
       </div>
 
-      {/* =====================
-          부상 규칙
-      ===================== */}
+      {/* 부상 규칙 */}
       <div>
         <button
           onClick={() => setShowWoundRule((v) => !v)}
@@ -154,9 +145,7 @@ export default function PlayerStatusSheet({
         )}
       </div>
 
-      {/* =====================
-          불안요소
-      ===================== */}
+      {/* 불안요소 */}
       <div className="border-t border-zinc-700 pt-3 space-y-2">
         <p className="text-xs text-zinc-400">불안요소</p>
 
@@ -187,9 +176,7 @@ export default function PlayerStatusSheet({
           </div>
         ))}
 
-        {/* =====================
-            불안요소 규칙 (복구됨)
-        ===================== */}
+        {/* 불안요소 규칙 */}
         <details className="text-xs text-zinc-300 mt-2">
           <summary className="cursor-pointer text-zinc-400 underline hover:text-zinc-200">
             불안요소 규칙 보기
@@ -226,9 +213,7 @@ export default function PlayerStatusSheet({
   );
 }
 
-/* =====================
-   공용 유닛 Row
-===================== */
+/* 공용 유닛 Row */
 function UnitRow({
   label,
   desc,
