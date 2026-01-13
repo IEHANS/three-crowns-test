@@ -14,7 +14,6 @@ import AdminControlPanel from "../components/AdminControlPanel";
 import WidgetTray from "../components/WidgetTray";
 import LogWidget from "../components/LogWidget";
 import MySecretPanel from "../components/MySecretPanel";
-import FaithHandPanel from "../components/FaithHandPanel"; // 🔥 추가
 
 export default function Home() {
   /* =======================
@@ -74,12 +73,9 @@ export default function Home() {
 
         {/* =======================
             🔒 나만 보는 정보 패널
-            (가문/왕국 + 신앙 카드 손패)
+            (가문 / 왕국 / 신앙 카드)
         ======================= */}
-        <div className="fixed bottom-4 right-4 z-50 w-72 space-y-3">
-          <MySecretPanel />
-          <FaithHandPanel />
-        </div>
+        <MySecretPanel />
 
         {/* =======================
             위젯 트레이
