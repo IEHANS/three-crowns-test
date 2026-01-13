@@ -24,7 +24,7 @@ const DEFAULT_PLAYER = {
   copper: 0,
   familyTrack: 0,
   influence: 0,
-  stance: null,
+  stance: null as null | string,
   buildings: {
     farm: false,
     manor: false,
@@ -45,7 +45,7 @@ const DEFAULT_PLAYER = {
     rebellion: 0,
     famine: 0
   },
-  persistentCards: [null, null, null, null]
+  persistentCards: [null, null, null, null] as (string | null)[]
 };
 
 export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
@@ -53,9 +53,8 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
   const [player, setPlayer] = useState<typeof DEFAULT_PLAYER | null>(null);
 
   /* =======================
-     🔥 Player 동기화 (정규화)
+     Player 동기화 (정규화)
   ======================= */
-
   useEffect(() => {
     const playerRef = ref(db, `room_1/players/${playerId}`);
 
@@ -82,13 +81,12 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
   }, [playerId]);
 
   /* =======================
-     🔴🔵 공개 주사위
+     공개 주사위
   ======================= */
-
-  const [dice, setDice] = useState<{ red: number | null; blue: number | null }>({
-    red: null,
-    blue: null
-  });
+  const [dice, setDice] = useState<{
+    red: number | null;
+    blue: number | null;
+  }>({ red: null, blue: null });
 
   useEffect(() => {
     const diceRef = ref(db, "room_1/publicDice");
@@ -113,7 +111,6 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
   /* =======================
      Firebase 쓰기 헬퍼
   ======================= */
-
   const save = (path: string, value: any) => {
     set(ref(db, `room_1/players/${playerId}/${path}`), value);
   };
@@ -129,7 +126,6 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
   /* =======================
      Render
   ======================= */
-
   return (
     <section className="bg-zinc-800 p-4 rounded relative text-sm space-y-4">
       {isAdmin && (
@@ -182,8 +178,6 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
           onAnxietyChange={(t, v) =>
             save(`anxiety/${t}`, v)
           }
-          showWoundRule={false}
-          setShowWoundRule={() => {}}
         />
 
         {/* 우 */}
