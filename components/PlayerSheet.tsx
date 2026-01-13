@@ -9,6 +9,8 @@ import PlayerActionSheet from "./PlayerActionSheet";
 import PlayerStatusSheet from "./PlayerStatusSheet";
 import PersistentCardPanel from "./PersistentCardPanel";
 
+import type { StanceType } from "../lib/gameTypes";
+
 type AnxietyType = "plague" | "monster" | "rebellion" | "famine";
 type PlayerId = "A" | "B" | "C" | "D";
 
@@ -24,7 +26,7 @@ const DEFAULT_PLAYER = {
   copper: 0,
   familyTrack: 0,
   influence: 0,
-  stance: null as null | string,
+  stance: null as StanceType,
   buildings: {
     farm: false,
     manor: false,

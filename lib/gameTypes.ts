@@ -1,0 +1,1 @@
+export type StanceType = "approve" | "oppose" | null;
