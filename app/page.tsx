@@ -44,7 +44,7 @@ export default function Home() {
         <div
           className="
             grid
-            grid-cols-[2fr_3fr_2fr]
+            grid-cols-[3fr_2fr_3fr]
             grid-rows-[auto_auto_auto]
             gap-4
           "
@@ -52,8 +52,11 @@ export default function Home() {
           {/* ===== 1행 ===== */}
           <PlayerSheet playerId="A" />
 
-          <div className="row-span-2">
-            <MainBoard logs={logs} />
+          {/* 중앙 메인 보드 */}
+          <div className="row-span-2 flex justify-center">
+            <div className="w-full max-w-[900px]">
+              <MainBoard logs={logs} />
+            </div>
           </div>
 
           <PlayerSheet playerId="B" />
@@ -69,9 +72,7 @@ export default function Home() {
         </div>
 
         {/* =======================
-            🔒 나만 보는 가문 & 왕국 패널
-            - 이 브라우저의 플레이어만 렌더링
-            - 게임 종료 시 즉시 사라짐
+            🔒 나만 보는 정보 패널
         ======================= */}
         <div className="fixed bottom-4 left-4 z-50 w-72">
           <MySecretPanel />
