@@ -20,7 +20,7 @@ function buildFaithDeck(): string[] {
   const deck: string[] = [];
   FAITH_CARDS.forEach(card => {
     for (let i = 0; i < card.count; i++) {
-      deck.push(card.id);
+      deck.push(card.id); // ✅ id만
     }
   });
   return shuffle(deck);
@@ -31,13 +31,26 @@ function buildFaithDeck(): string[] {
    - 게임 시작 시 1회
 ========================= */
 export async function initFaithSystem(roomId: string) {
-  const deckRef = ref(db, `${roomId}/faithDeck`);
-  const snap = await get(deckRef);
+  const roomRef = ref(db, roomId);
+  const snap = await get(roomRef);
 
-  // 이미 존재하면 재생성 금지
-  if (snap.exists()) return;
+  const data = snap.val() ?? {};
+  const hasDeck = Array.isArray(data.faithDeck);
+  const hasHands =
+    data.faithHands &&
+    ["A", "B", "C", "D"].every(k =>
+      Array.isArray(data.faithHands[k])
+    );
 
-  await update(ref(db, roomId), {
+  // ✅ 둘 다 있으면 유지
+  if (hasDeck && hasHands) {
+    console.log("✝ faith system already initialized");
+    return;
+  }
+
+  console.log("✝ initializing faith system");
+
+  await update(roomRef, {
     faithDeck: buildFaithDeck(),
     faithHands: {
       A: [],
@@ -55,18 +68,17 @@ export async function drawFaithCard(
   roomId: string,
   playerId: PlayerId
 ) {
-  const roomRef = ref(db, roomId);
-  const snap = await get(roomRef);
+  const deckRef = ref(db, `${roomId}/faithDeck`);
+  const handsRef = ref(db, `${roomId}/faithHands`);
 
-  if (!snap.exists()) {
-    console.warn("❌ room not found:", roomId);
-    return;
-  }
+  const [deckSnap, handsSnap] = await Promise.all([
+    get(deckRef),
+    get(handsRef)
+  ]);
 
-  const data = snap.val();
-  const deck: string[] = data.faithDeck ?? [];
+  const deck: string[] = deckSnap.val() ?? [];
   const hands: Record<PlayerId, string[]> =
-    data.faithHands ?? { A: [], B: [], C: [], D: [] };
+    handsSnap.val() ?? { A: [], B: [], C: [], D: [] };
 
   if (deck.length === 0) {
     console.warn("❌ faith deck empty");
@@ -74,12 +86,15 @@ export async function drawFaithCard(
   }
 
   const cardId = deck[0];
+  const currentHand = hands[playerId] ?? [];
 
-  await update(roomRef, {
+  await update(ref(db, roomId), {
     faithDeck: deck.slice(1),
     [`faithHands/${playerId}`]: [
-      ...hands[playerId],
+      ...currentHand,
       cardId
     ]
   });
+
+  console.log(`✝ ${playerId} drew faith card:`, cardId);
 }

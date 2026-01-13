@@ -11,7 +11,6 @@ import PersistentCardPanel from "./PersistentCardPanel";
 
 import type { StanceType } from "../lib/gameTypes";
 
-type AnxietyType = "plague" | "monster" | "rebellion" | "famine";
 type PlayerId = "A" | "B" | "C" | "D";
 
 type Props = {
@@ -52,32 +51,49 @@ const DEFAULT_PLAYER = {
 
 export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
   const { setMyPlayerId } = useMyPlayer();
-  const [player, setPlayer] = useState<typeof DEFAULT_PLAYER | null>(null);
+  const [player, setPlayer] =
+    useState<typeof DEFAULT_PLAYER | null>(null);
 
   /* =======================
-     Player 동기화 (정규화)
+     Player 동기화 (🔥 secret 절대 보호)
   ======================= */
   useEffect(() => {
     const playerRef = ref(db, `room_1/players/${playerId}`);
 
-    return onValue(playerRef, (snap) => {
+    return onValue(playerRef, snap => {
       if (!snap.exists()) {
-        set(playerRef, DEFAULT_PLAYER);
+        // ❗ 여기서 Firebase에 set 하면 안 됨
         setPlayer(DEFAULT_PLAYER);
         return;
       }
 
       const data = snap.val();
 
+      // 🔥 secret은 읽기만 하고 절대 덮어쓰지 않음
+      const { secret, ...publicData } = data;
+
       setPlayer({
         ...DEFAULT_PLAYER,
-        ...data,
-        buildings: { ...DEFAULT_PLAYER.buildings, ...data.buildings },
-        units: { ...DEFAULT_PLAYER.units, ...data.units },
-        wounded: { ...DEFAULT_PLAYER.wounded, ...data.wounded },
-        anxiety: { ...DEFAULT_PLAYER.anxiety, ...data.anxiety },
+        ...publicData,
+        buildings: {
+          ...DEFAULT_PLAYER.buildings,
+          ...publicData.buildings
+        },
+        units: {
+          ...DEFAULT_PLAYER.units,
+          ...publicData.units
+        },
+        wounded: {
+          ...DEFAULT_PLAYER.wounded,
+          ...publicData.wounded
+        },
+        anxiety: {
+          ...DEFAULT_PLAYER.anxiety,
+          ...publicData.anxiety
+        },
         persistentCards:
-          data.persistentCards ?? DEFAULT_PLAYER.persistentCards
+          publicData.persistentCards ??
+          DEFAULT_PLAYER.persistentCards
       });
     });
   }, [playerId]);
@@ -92,7 +108,7 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
 
   useEffect(() => {
     const diceRef = ref(db, "room_1/publicDice");
-    return onValue(diceRef, (snap) => {
+    return onValue(diceRef, snap => {
       const v = snap.val();
       setDice({
         red: v?.red ?? null,
@@ -107,11 +123,14 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
   };
 
   const resetDice = () => {
-    set(ref(db, "room_1/publicDice"), { red: null, blue: null });
+    set(ref(db, "room_1/publicDice"), {
+      red: null,
+      blue: null
+    });
   };
 
   /* =======================
-     Firebase 쓰기 헬퍼
+     Firebase 쓰기 (공개 데이터만)
   ======================= */
   const save = (path: string, value: any) => {
     set(ref(db, `room_1/players/${playerId}/${path}`), value);
@@ -125,9 +144,6 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
     );
   }
 
-  /* =======================
-     Render
-  ======================= */
   return (
     <section className="bg-zinc-800 p-4 rounded relative text-sm space-y-4">
       {isAdmin && (
@@ -136,19 +152,23 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
         </div>
       )}
 
+      {/* 이름 입력 → 내 플레이어 확정 */}
       <input
         value={player.displayName}
         onChange={(e) => {
           const v = e.target.value;
           save("displayName", v);
-          if (v.trim()) setMyPlayerId(playerId);
+
+          if (v.trim()) {
+            setMyPlayerId(playerId);
+            localStorage.setItem("myPlayerId", playerId);
+          }
         }}
         placeholder={`플레이어 ${playerId}`}
         className="w-full bg-zinc-700 px-2 py-1 rounded"
       />
 
       <div className="grid grid-cols-3 gap-4">
-        {/* 좌 */}
         <PlayerActionSheet
           gold={player.gold}
           silver={player.silver}
@@ -165,7 +185,6 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
           onStanceChange={(v) => save("stance", v)}
         />
 
-        {/* 중 */}
         <PlayerStatusSheet
           buildings={player.buildings}
           units={player.units}
@@ -182,18 +201,23 @@ export default function PlayerSheet({ playerId, isAdmin = false }: Props) {
           }
         />
 
-        {/* 우 */}
         <PersistentCardPanel
           cards={player.persistentCards}
           onSave={(i, t) =>
             set(
-              ref(db, `room_1/players/${playerId}/persistentCards/${i}`),
+              ref(
+                db,
+                `room_1/players/${playerId}/persistentCards/${i}`
+              ),
               t
             )
           }
           onClear={(i) =>
             set(
-              ref(db, `room_1/players/${playerId}/persistentCards/${i}`),
+              ref(
+                db,
+                `room_1/players/${playerId}/persistentCards/${i}`
+              ),
               null
             )
           }
